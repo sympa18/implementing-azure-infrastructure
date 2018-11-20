@@ -4,11 +4,11 @@ Hi and welcome to our Azure training project. Codename Red Dwarf The goal of thi
 
 Initially we have created two streams for labs. PowerShell, ARM template's and we are working on creating Terraform and also Bash CLI.
 
-We wil also be creating a PowerPoint that will help guide trainers at a high level through what topics to cover and where to find further information.
+We will also be creating a PowerPoint that will help guide trainers at a high level through what topics to cover and where to find further information.
 
-The topics coevered at a high level so far are
+The topics covered at a high level so far are
 
-Azure Ovberview
+Azure Overview
 Azure Resource Manager
 Storage
 Networking
