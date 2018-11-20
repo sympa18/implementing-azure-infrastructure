@@ -1,0 +1,263 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "VNETProdName": {
+            "type": "string"
+        },
+        "VNETAddressSpace": {
+            "type": "string"
+        },
+        "VNETProdSubnetName": {
+            "type": "string"
+        },
+        "VNETProdSubnetAddressSpace": {
+            "type": "string"
+        },
+        "VMProdIpDns": {
+            "type": "string"
+        },
+        "VMLoadBalancerName": {
+            "type": "string"
+        },
+        "instanceCount": {
+            "type": "int",
+            "metadata": {
+                "description": "Number of VM instances (100 or less)."
+            },
+            "maxValue": 3
+        },
+        "VMSSName": {
+            "type": "string"
+        },
+        "UserName": {
+            "type": "string"
+        },
+        "Password": {
+            "type": "securestring"
+        },
+        "VMNameProd": {
+            "type": "string"
+        },
+        "VMProdNicName": {
+            "type": "string"
+        },
+        "ProdNSGName": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2015-06-15",
+            "name": "[parameters('VNETProdName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/',parameters('ProdNSGName'))]"
+            ],
+            "tags": {
+                "displayName": "[parameters('VNETProdName')]"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('VNETAddressSpace')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('VNETProdSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('VNETProdSubnetAddressSpace')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('ProdNSGName'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2017-06-01",
+            "name": "[parameters('ProdNSGName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "web-rule",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "direction": "Inbound",
+                            "priority": 102,
+                            "access": "Allow",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2015-06-15",
+            "name": "[parameters('VMProdIpDns')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "[parameters('VMProdIpDns')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/',parameters('VNETProdName'))]"
+            ],
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4
+            }
+        },
+        {
+            "apiVersion": "2015-05-01-preview",
+            "name": "[parameters('VMLoadBalancerName')]",
+            "type": "Microsoft.Network/loadBalancers",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('VMProdIpDns'))]"
+            ],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "LoadBalancerFrontEnd",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('VMProdIpDns'))]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "LoadBalancerBackEndPool1"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "LBRule1",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',parameters('VMLoadBalancerName')),'/frontendIPConfigurations/LoadBalancerFrontEnd')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',parameters('VMLoadBalancerName')),'/backendAddressPools/LoadBalancerBackEndPool1')]"
+                            },
+                            "protocol": "Tcp",
+                            "frontendPort": 80,
+                            "backendPort": 80,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 5,
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',parameters('VMLoadBalancerName')),'/probes/tcpProbe')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "tcpProbe",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 80,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "apiVersion": "2017-12-01",
+            "name": "[parameters('VMSSName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/',parameters('VNETProdName'))]",
+                "[concat('Microsoft.Network/loadBalancers/',parameters('VMLoadBalancerName'))]"
+            ],
+            "sku": {
+                "capacity": "[parameters('InstanceCount')]",
+                "name": "Standard_D1"
+            },
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "overprovision": false,
+                "upgradePolicy": {
+                    "mode": "Manual"
+                },
+                "virtualMachineProfile": {
+                    "storageProfile": {
+                        "osDisk": {
+                            "caching": "ReadWrite",
+                            "createOption": "FromImage"
+                        },
+                        "imageReference": {
+                            "publisher": "Canonical",
+                            "offer": "UbuntuServer",
+                            "sku": "16.04-LTS",
+                            "version": "latest"
+                        }
+                    },
+                    "osProfile": {
+                        "computerNamePrefix": "[parameters('VMNameProd')]",
+                        "adminUsername": "[parameters('UserName')]",
+                        "adminPassword": "[parameters('Password')]"
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "[parameters('VMProdNicName')]",
+                                "properties": {
+                                    "primary": true,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "[concat(parameters('VMSSName'), 'ipconfig')]",
+                                            "properties": {
+                                                "subnet": {
+                                                    "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('VNETProdName')), '/subnets/', parameters('vnetProdSubnetName'))]"
+                                                },
+                                                "loadBalancerBackendAddressPools": [
+                                                    {
+                                                        "id": "[concat(resourceId('Microsoft.Network/loadBalancers',parameters('VMLoadBalancerName')),'/backendAddressPools/LoadBalancerBackEndPool1')]"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "extensionProfile": {
+                        "extensions": [
+                            {
+                                "name": "AppInstall",
+                                "properties": {
+                                    "publisher": "Microsoft.Azure.Extensions",
+                                    "type": "CustomScript",
+                                    "typeHandlerVersion": "2.0",
+                                    "autoUpgradeMinorVersion": true,
+                                    "settings": {
+                                        "fileUris": [
+                                            "https://raw.githubusercontent.com/Azure-Samples/compute-automation-configurations/master/automate_nginx.sh"
+                                        ],
+                                        "commandToExecute": "bash automate_nginx.sh"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

@@ -1,0 +1,60 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "TrafficManagerName": {
+            "type": "string"
+        },
+        "VMMelProdIpDns": {
+            "type": "string"
+        },
+        "VMSydProdIpDns": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('TrafficManagerName')]",
+            "type": "Microsoft.Network/trafficmanagerprofiles",
+            "apiVersion": "2017-05-01",
+            "location": "global",
+            "tags": {},
+            "properties": {
+                "profileStatus": "Enabled",
+                "trafficRoutingMethod": "Performance",
+                "dnsConfig": {
+                    "relativeName": "[parameters('TrafficManagerName')]",
+                    "ttl": 30
+                },
+                "monitorConfig": {
+                    "protocol": "HTTP",
+                    "port": 80,
+                    "path": "/index/html",
+                    "intervalInSeconds": 30,
+                    "timeoutInSeconds": 5,
+                    "toleratedNumberOfFailures": 3
+                },
+                "endpoints": [
+                    {
+                        "name": "MELLB",
+                        "type": "Microsoft.Network/trafficManagerProfiles/externalEndpoints",
+                        "properties": {
+                            "endpointLocation": "australiasoutheast",
+                            "target": "[reference(concat('Microsoft.Network/publicIPAddresses/', parameters('VMMelProdIpDns')),'2015-06-15').ipAddress]"
+                        }
+                    },
+                    {
+                        "name": "SYDLB",
+                        "type": "Microsoft.Network/trafficManagerProfiles/externalEndpoints",
+                        "properties": {
+                            "endpointLocation": "australiaeast",
+                            "target": "[reference(resourceId('RGSYDCONTOSO','Microsoft.Network/publicIPAddresses', parameters('VMSydProdIpDns')),'2015-06-15').ipAddress]"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}

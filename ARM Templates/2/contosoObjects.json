@@ -1,0 +1,563 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "StorageAccountName": {
+            "type": "string"
+        },
+        "VNETProdName": {
+            "type": "string"
+        },
+        "VNETAddressSpace": {
+            "type": "string"
+        },
+        "VNETProdSubnetName": {
+            "type": "string"
+        },
+        "VNETProdSubnetAddressSpace": {
+            "type": "string"
+        },
+        "VNETProdGatewayAddressSpace": {
+            "type": "string"
+        },
+        "VNETDevName": {
+            "type": "string",
+            "defaultValue": "blank"
+        },
+        "VNETDevAddressSpace": {
+            "type": "string",
+            "defaultValue": "blank"
+        },
+        "VNETDevSubnetName": {
+            "type": "string",
+            "defaultValue": "blank"
+        },
+        "VNETDevSubnetAddressSpace": {
+            "type": "string",
+            "defaultValue": "blank"
+        },
+        "DeployDevNetwork": {
+            "type": "string",
+            "defaultValue": "False"
+        },
+        "ProdNSGName": {
+            "type": "string"
+        },
+        "DevNSGName": {
+            "type": "string",
+            "defaultValue": "blank"
+        },
+        "DeployMelPeering": {
+            "type": "string",
+            "defaultValue": "False"
+        },
+        "DeploySydPeering": {
+            "type": "string",
+            "defaultValue": "False"
+        },
+        "VMProdNicName": {
+            "type": "string"
+        },
+        "VMProdIpDns": {
+            "type": "string"
+        },
+        "VMDevIpDns": {
+            "type": "string",
+            "defaultValue": "blank"
+        },
+        "VMDevNicName": {
+            "type": "string",
+            "defaultValue": "blank"
+        },
+        "VMNameProd": {
+            "type": "string"
+        },
+        "UserName": {
+            "type": "string"
+        },
+        "Password": {
+            "type": "securestring"
+        },
+        "VMNameDev": {
+            "type": "string",
+            "defaultValue": "blank"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2015-06-15",
+            "name": "[parameters('StorageAccountName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "[parameters('StorageAccountName')"
+            },
+            "properties": {
+                "accountType": "Standard_LRS",
+                "accessTier": "Hot"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2017-06-01",
+            "name": "[parameters('ProdNSGName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "rdp-rule",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "direction": "Inbound",
+                            "priority": 100,
+                            "access": "Allow",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "ssh-rule",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "direction": "Inbound",
+                            "priority": 101,
+                            "access": "Allow",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "web-rule",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "direction": "Inbound",
+                            "priority": 102,
+                            "access": "Allow",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2017-06-01",
+            "name": "[parameters('DevNSGName')]",
+            "location": "[resourceGroup().location]",
+            "condition": "[equals(parameters('DeployDevNetwork'),'True')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "rdp-rule",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "direction": "Inbound",
+                            "priority": 100,
+                            "access": "Allow",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "ssh-rule",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "direction": "Inbound",
+                            "priority": 101,
+                            "access": "Allow",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "web-rule",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "direction": "Inbound",
+                            "priority": 102,
+                            "access": "Allow",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2015-06-15",
+            "name": "[parameters('VNETProdName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/',parameters('ProdNSGName'))]"
+            ],
+            "tags": {
+                "displayName": "[parameters('VNETProdName')]"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('VNETAddressSpace')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('VNETProdSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('VNETProdSubnetAddressSpace')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('ProdNSGName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "GatewaySubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('VNETProdGatewayAddressSpace')]"
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "apiVersion": "2018-08-01",
+                    "type": "virtualNetworkPeerings",
+                    "name": "[concat(parameters('VNETProdName'),'-',parameters('VNETDevName'))]",
+                    "location": "[resourceGroup().location]",
+                    "condition": "[equals(parameters('DeployMelPeering'),'True')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Network/virtualNetworks/', parameters('VNETProdName'))]",
+                        "[concat('Microsoft.Network/virtualNetworks/', parameters('VNETDevName'))]"
+                    ],
+                    "comments": "This is the peering from vNet 1 to vNet 2",
+                    "properties": {
+                        "allowVirtualNetworkAccess": "true",
+                        "allowForwardedTraffic": "false",
+                        "allowGatewayTransit": "false",
+                        "useRemoteGateways": "false",
+                        "remoteVirtualNetwork": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('VNETDevName'))]"
+                        }
+                    }
+                },
+                {
+                    "apiVersion": "2018-08-01",
+                    "type": "virtualNetworkPeerings",
+                    "name": "[concat(parameters('VNETProdName'),'-VNETMELPROD')]",
+                    "location": "[resourceGroup().location]",
+                    "condition": "[equals(parameters('DeploySydPeering'),'True')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Network/virtualNetworks/', parameters('VNETProdName'))]"
+                    ],
+                    "comments": "This is the peering from vNet 1 to vNet 2",
+                    "properties": {
+                        "allowVirtualNetworkAccess": "true",
+                        "allowForwardedTraffic": "false",
+                        "allowGatewayTransit": "false",
+                        "useRemoteGateways": "false",
+                        "remoteVirtualNetwork": {
+                            "id": "[resourceId('RGMELCONTOSO','Microsoft.Network/virtualNetworks','VNETMELPROD')]"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2015-06-15",
+            "name": "[parameters('VNETDevName')]",
+            "location": "[resourceGroup().location]",
+            "condition": "[equals(parameters('DeployDevNetwork'),'True')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/',parameters('DevNSGName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/',parameters('VNETProdName'))]"
+            ],
+            "tags": {
+                "displayName": "[parameters('VNETDevName')]"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('VNETDevAddressSpace')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('VNETDevSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('VNETDevSubnetAddressSpace')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('DevNSGName'))]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "apiVersion": "2018-08-01",
+                    "type": "virtualNetworkPeerings",
+                    "name": "[concat(parameters('VNETDevName'),'-',parameters('VNETProdName'))]",
+                    "location": "[resourceGroup().location]",
+                    "condition": "[equals(parameters('DeployMelPeering'),'True')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Network/virtualNetworks/', parameters('VNETProdName'))]",
+                        "[concat('Microsoft.Network/virtualNetworks/', parameters('VNETDevName'))]"
+                    ],
+                    "comments": "This is the peering from vNet 1 to vNet 2",
+                    "properties": {
+                        "allowVirtualNetworkAccess": "true",
+                        "allowForwardedTraffic": "false",
+                        "allowGatewayTransit": "false",
+                        "useRemoteGateways": "false",
+                        "remoteVirtualNetwork": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('VNETProdName'))]"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "nestedTemplate",
+            "type": "Microsoft.Resources/deployments",
+            "resourceGroup": "RGMELCONTOSO",
+            "condition": "[equals(parameters('DeploySydPeering'),'True')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('VNETProdName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "apiVersion": "2018-02-01",
+                            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                            "location": "australiasoutheast",
+                            "name": "VNETMELPROD/VNETMELPROD-VNETSYDPROD",
+                            "properties": {
+                                "allowVirtualNetworkAccess": "true",
+                                "allowForwardedTraffic": "false",
+                                "allowGatewayTransit": "false",
+                                "useRemoteGateways": "false",
+                                "remoteVirtualNetwork": {
+                                    "id": "[resourceId('RGSYDCONTOSO','Microsoft.Network/virtualNetworks','VNETSYDPROD')]"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2015-06-15",
+            "name": "[parameters('VMProdNicName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "[parameters('VMProdNicName')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/',parameters('VNETProdName'))]",
+                "[concat('Microsoft.Network/publicIPAddresses/',parameters('VMProdIpDns'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('VNETProdName')), '/subnets/', parameters('vnetProdSubnetName'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses',parameters('VMProdIpDns'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2015-06-15",
+            "name": "[parameters('VMProdIpDns')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "[parameters('VMProdIpDns')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/',parameters('VNETProdName'))]"
+            ],
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2015-06-15",
+            "name": "[parameters('VMDevIpDns')]",
+            "location": "[resourceGroup().location]",
+            "condition": "[equals(parameters('DeployDevNetwork'),'True')]",
+            "tags": {
+                "displayName": "[parameters('VMDevIpDns')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/',parameters('VNETDevName'))]"
+            ],
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2015-06-15",
+            "name": "[parameters('VMDevNicName')]",
+            "location": "[resourceGroup().location]",
+            "condition": "[equals(parameters('DeployDevNetwork'),'True')]",
+            "tags": {
+                "displayName": "[parameters('VMDevNicName')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/',parameters('VNETDevName'))]",
+                "[concat('Microsoft.Network/publicIPAddresses/',parameters('VMDevIpDns'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('VNETDevName')), '/subnets/', parameters('vnetDevSubnetName'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses',parameters('VMDevIpDns'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2017-03-30",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('VMNameProd')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/',parameters('VMProdNicName'))]"
+            ],
+            "tags": {
+                "displayName": "[parameters('VMNameProd')]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_D1"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('VMNameProd')]",
+                    "adminUsername": "[parameters('UserName')]",
+                    "adminPassword": "[parameters('Password')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2016-Datacenter-Server-Core-smalldisk",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('VMProdNicName'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat('http://', toLower(parameters('StorageAccountName')), '.blob.core.windows.net')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-03-30",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('VMNameDev')]",
+            "location": "[resourceGroup().location]",
+            "condition": "[equals(parameters('DeployDevNetwork'),'True')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/',parameters('VMDevNicName'))]"
+            ],
+            "tags": {
+                "displayName": "[parameters('VMNameDev')]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_D1"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('VMNameDev')]",
+                    "adminUsername": "[parameters('UserName')]",
+                    "adminPassword": "[parameters('Password')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2016-Datacenter-Server-Core-smalldisk",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('VMDevNicName'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat('http://', toLower(parameters('StorageAccountName')), '.blob.core.windows.net')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
