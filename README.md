@@ -1,4 +1,4 @@
-# Implemeting Azure Infrastructure Project
+# Implementing Azure Infrastructure Project
 
 Hi and welcome to our Azure training project. Codename Red Dwarf The goal of this workshop is to be accessible to anybody that wants to run fundamental Azure training. 
 
