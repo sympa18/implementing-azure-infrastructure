@@ -808,3 +808,6 @@ Copy that DNS name and paste it into a browser to see your local endpoint.
 2) Create a sepearte Traffic Manager Profile using a Priority routing method and add both endpoints.
 
 Further reading : https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/overview 
+
+
+[Further Labs](./Labs2.MD)
