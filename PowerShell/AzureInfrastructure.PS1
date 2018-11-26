@@ -565,7 +565,8 @@ Get-AzureRmPublicIpAddress -ResourceGroupName $rgnamesyd -Name $vmsssydprodpipdn
 ###############################
 #Add a Traffic Manager Profile#
 ###############################
-
+$locationmel = "australiasoutheast"
+$locationsyd = "australiaeast"
 $vmssnamesydprod = "VMSSSYDPROD"
 $vmssnamemelprod = "VMSSMELPROD"  
 $tmpname = "TMCONTOSO$(Get-Random)"

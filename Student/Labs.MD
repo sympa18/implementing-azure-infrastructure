@@ -58,7 +58,7 @@ You should see a successfull output such as the code output below
 Jump into the Azure Portal and look for your new resource groups.
 
 ## Challenge activity
-1) Create a Policy that restricts the location of resource's to only the regions you will be deployng to.
+1) Create a Policy that restricts the location of resource's to only the regions you will be deploying to.
 
 Further reading : 
 https://docs.microsoft.com/en-us/azure/governance/policy/overview
@@ -762,6 +762,8 @@ One way we can add Global DNS load balancing is through a Traffic Manager Profil
 #Add a Traffic Manager Profile#
 ###############################
 
+$locationmel = "australiasoutheast"
+$locationsyd = "australiaeast"
 $vmssnamesydprod = "VMSSSYDPROD"
 $vmssnamemelprod = "VMSSMELPROD"  
 $tmpname = "TMCONTOSO$(Get-Random)"
