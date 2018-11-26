@@ -1,0 +1,44 @@
+##########
+##Step 1##
+##########
+
+##################################
+##Create two new Resource Groups##
+##################################
+
+#If you are in a Cloud Shell session skip this line as you are alrteady authenticated#
+az login
+
+$locationmel = "australiasoutheast"
+$locationsyd = "australiaeast"
+$rgnamemel = "RGMELCONTOSO"
+$rgnamesyd = "RGSYDCONTOSO"
+
+#Creating a new resource groups#
+az group create --name $rgnamemel --location $locationmel
+az group create --name $rgnamesyd --location $locationsyd
+
+##########
+##Step 2##
+##########
+
+#Specifying location variables
+$locationmel = "australiasoutheast"
+$locationsyd = "australiaeast"
+
+#specifying Resource Group variables
+$rgnamemel = "RGMELCONTOSO"
+$rgnamesyd = "RGSYDCONTOSO"
+
+#Setting variables for the storage account#
+$sasydname = "sasyd$(Get-Random)"
+$samelname = "samel$(Get-Random)"
+
+#Create new storage accounts
+$sasyd = New-AzureRmStorageAccount -Location $locationsyd -Name $sasydname -ResourceGroupName $rgnamesyd -SkuName Standard_LRS -AccessTier Hot -Kind StorageV2
+$samel = New-AzureRmStorageAccount -Location $locationmel -Name $samelname -ResourceGroupName $rgnamemel -SkuName Standard_LRS -AccessTier Hot -Kind StorageV2
+
+
+$sasyd = az storage account create --name $sasydname --resource-group $rgnamesyd --location $locationsyd --sku Standard_LRS --kind StorageV2
+$samel = az storage account create --name $samelname --resource-group $rgnamemel --location $locationmel --sku Standard_LRS --kind StorageV2
+
