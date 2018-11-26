@@ -762,8 +762,8 @@ One way we can add Global DNS load balancing is through a Traffic Manager Profil
 #Add a Traffic Manager Profile#
 ###############################
 
-$locationmel = "australiasoutheast"
-$locationsyd = "australiaeast"
+$rgnamemel = "RGMELCONTOSO"
+$rgnamesyd = "RGSYDCONTOSO"
 $vmssnamesydprod = "VMSSSYDPROD"
 $vmssnamemelprod = "VMSSMELPROD"  
 $tmpname = "TMCONTOSO$(Get-Random)"
