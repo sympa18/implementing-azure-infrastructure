@@ -58,7 +58,7 @@ You should see a successfull output such as the code output below
 Jump into the Azure Portal and look for your new resource groups.
 
 ## Challenge activity
-1) Create a Policy that audits the location of resource's to outside of the regions you will be deployng to.
+1) Create a Policy that restricts the location of resource's to only the regions you will be deployng to.
 
 Further reading : 
 https://docs.microsoft.com/en-us/azure/governance/policy/overview
