@@ -57,14 +57,8 @@ You should see a successfull output such as the code output below
 
 Jump into the Azure Portal and look for your new resource groups.
 
-## Challenge activity
-1) Create a Policy that restricts the location of resource's to only the regions you will be deploying to.
-
 Further reading : 
 https://docs.microsoft.com/en-us/azure/governance/policy/overview
-
-
-2) Create a Resource Lock against your Resource groups to make sure you cannot accidentaly delete resources.
 
 Further reading : https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-lock-resources
 
@@ -103,10 +97,6 @@ $samel = New-AzureRmStorageAccount -Location $locationmel -Name $samelname -Reso
 
 Jump into the portal and ensure that the storage accounts have been created.
 
-## Challenge activity
-1) Create a File Share and if possible within your network connect to it from your machine. 
-
-2) Create a Blob container, upload a text file to it then make it publicly accessible. Try and open your text file in a browser
 
 Further reading : https://docs.microsoft.com/en-us/azure/storage/common/storage-introduction
 
@@ -217,7 +207,6 @@ $vnetpeeringmeldevtomelprod = Add-AzureRmVirtualNetworkPeering -Name vnetmeldevt
 
 If you check the peering section of each VNET you will notice that you should now have an active and connected PEER
 
-##Add screenshot of the VNET architecture
 
 # LAB add Network Security Groups
 
@@ -546,10 +535,6 @@ https://docs.microsoft.com/en-us/azure/virtual-machines/windows/
 https://docs.microsoft.com/en-us/azure/virtual-machines/linux/
 
 
-
-### Challenge activity
-If you have RDP or SSH access, try and jump onto all three VM's and get them to communicate with each other. Remember because we do not have DNS setup the VM's will not be able to resolve the DNS names of any VM not in the same VNET.
-
 Further reading : https://docs.microsoft.com/en-us/azure/networking/networking-overview
 
 https://docs.microsoft.com/en-us/azure/virtual-network/security-overview
@@ -740,10 +725,6 @@ In a browser session type in the public IP and you should see it return the Web 
         <figcaption>Load Balancer Output</figcaption>
 </figure>
 
-## Challenge activity
-1) Deallocate the Instance you are connected to. What occure when you go back to the website ?
-
-2) Set an auto Scale Set Rule on your VM Scale Set to scale up when the CPU goes over 70% over 5 minutes.
 
 Further Reading : https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/overview
 
@@ -803,11 +784,6 @@ Copy that DNS name and paste it into a browser to see your local endpoint.
         <figcaption>Traffic Manager Profile Output</figcaption>
 </figure>
 
-## Challenge activity
-
-1) If you have RDP access jump onto a VM in Sydney and one in Melbourne and note what endpoint you connect to in each region.
-
-2) Create a sepearte Traffic Manager Profile using a Priority routing method and add both endpoints.
 
 Further reading : https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/overview 
 
