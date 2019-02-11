@@ -545,7 +545,7 @@ https://docs.microsoft.com/en-au/azure/virtual-network/tutorial-filter-network-t
 
 If we want to build to scale in IAAS we need to look at creating a VM Scale Set. In this lab we wil create two simple VM Scale Set's that will enable IIS and simply configure the Web Site to display the active Instance's hostname.
 
-As before we will create each VM Scale set in seperate Coud Shell sessions to avoid the Clous Shell timewout.
+As before we will create each VM Scale set in seperate Cloud Shell sessions to avoid the Cloud Shell timewout.
 
 Run the following commands to spin up a VM Scale Set in Melbourne.
 
