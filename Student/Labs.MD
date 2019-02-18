@@ -211,7 +211,7 @@ If you check the peering section of each VNET you will notice that you should no
 # LAB add Network Security Groups
 
 Let's now add some security to our VNET before we go ahead and add some Virtual Machines into the environment.
-Run the following commands to add a VNET to each of the Subnet's in your VNET's. Note that we have added three rules to allow access to port's 3389 for RDP, 22 for SSH and 80 for HTTP. These rules are always blocked by default for security reason's. It is recommended that you only open certain ports in Dev/Test scenarios and not for a production environment.
+Run the following commands to add a NSG to each of the Subnet's in your VNET's. Note that we have added three rules to allow access to port's 3389 for RDP, 22 for SSH and 80 for HTTP. These rules are always blocked by default for security reason's. It is recommended that you only open certain ports in Dev/Test scenarios and not for a production environment.
 
 
 ```
