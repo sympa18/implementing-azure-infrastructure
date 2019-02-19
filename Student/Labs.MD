@@ -785,6 +785,14 @@ Copy that DNS name and paste it into a browser to see your local endpoint.
 </figure>
 
 
+# Challenge
+* Set a Policy
+* Set a Resource Lock
+* Apply Tags
+* Attempt to connect from one VM to another in a Separate VNET (You will need RDP or SSH access for this challenge)
+* Scale your VMScaleSet
+
+
 Further reading : https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/overview 
 
 
