@@ -210,7 +210,7 @@ resource "azurerm_virtual_machine" "melvm1" {
     storage_os_disk = {
         create_option = "FromImage"
         os_type = "Linux"
-        name = "${random_string.rnd1}"
+        name = "${random_string.rnd1.result}"
         managed_disk_type = "Standard_LRS"
     }
     os_profile = {
@@ -240,7 +240,7 @@ resource "azurerm_virtual_machine" "melvm2" {
     storage_os_disk = {
         create_option = "FromImage"
         os_type = "Linux"
-        name = "${random_string.rnd2}"
+        name = "${random_string.rnd2.result}"
         managed_disk_type = "Standard_LRS"
     }
     os_profile = {
@@ -269,7 +269,7 @@ resource "azurerm_virtual_machine" "sydvm1" {
     storage_os_disk = {
         create_option = "FromImage"
         os_type = "Linux"
-        name = "${random_string.rnd3}"
+        name = "${random_string.rnd3.result}"
         managed_disk_type = "Standard_LRS"
     }
     os_profile = {
