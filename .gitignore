@@ -1,6 +1,11 @@
-Terraform/terraform.tfstate
-Terraform/terraform.tfstate.backup
-Terraform/tfplan
+Terraform/1/terraform.tfstate
+Terraform/1/terraform.tfstate.backup
+Terraform/1/tfplan
 Terraform/.terraform/plugins/windows_amd64/lock.json
 Terraform/.terraform/plugins/*
+Terraform/2/terraform.tfstate
+Terraform/2/terraform.tfstate.backup
+Terraform/2/tfplan
+Terraform/1/.terraform/plugins/*
+Terraform/2/.terraform/plugins/*
 
