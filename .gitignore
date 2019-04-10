@@ -1,0 +1,6 @@
+Terraform/terraform.tfstate
+Terraform/terraform.tfstate.backup
+Terraform/tfplan
+Terraform/.terraform/plugins/windows_amd64/lock.json
+Terraform/.terraform/plugins/*
+
