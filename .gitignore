@@ -8,4 +8,5 @@ Terraform/2/terraform.tfstate.backup
 Terraform/2/tfplan
 Terraform/1/.terraform/plugins/*
 Terraform/2/.terraform/plugins/*
+*.info
 
